@@ -14,8 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', Form::class);
+Route::get('/', Form::class)->name('nextmatch');
+Route::get('/settings', \App\Http\Livewire\Settings::class)->name('settings');
+Route::get('/pastlists', \App\Http\Livewire\PastLists::class)->name("pastlists");
 Route::get('/match/{id}', Form::class)->name('specificmatch');
+Route::get('/match/{id}/{event}', Form::class)->name('specificmatch');
 Route::get('/api/match/{id}', 'App\Http\API@getByMatch');
 Route::get('/api/match/{id}/{event}', 'App\Http\API@getByMatch');
 Route::get('/api/config', 'App\Http\API@config');

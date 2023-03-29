@@ -83,8 +83,14 @@ class Form extends Component
 
     public string $signed = '';
 
-    public function mount(string $id = '')
+    public string $event;
+
+    public string | bool $error = false;
+
+    public function mount(string $id = '', string | null $event = null)
     {
+        $event ??= Config::event();
+        $this->event = $event;
         $this->match = $id;
         if (! empty($id)) {
             $this->hasSubmitted = true;
@@ -96,7 +102,7 @@ class Form extends Component
         if (empty($this->match)) {
             $this->getNextMatch();
         }
-        $query = PitList::query()->where(['match_num' => $this->match, "event" => Config::event()]);
+        $query = PitList::query()->where(['match_num' => $this->match, "event" => $this->event]);
         if ($query->count() > 0) {
             if (!empty($query->get('signed')[0]['signed'])) {
                 $this->hasSubmitted = true;
@@ -113,9 +119,9 @@ class Form extends Component
 
     public function submitForm()
     {
-        $query = PitList::query()->where(['match_num' => $this->match, "event" => Config::event()]);
+        $query = PitList::query()->where(['match_num' => $this->match, "event" => $this->event]);
         if ($query->count() === 0) {
-            \App\Models\PitList::create(['signed' => $this->signed, 'list' => $this->checks, 'match_num' => $this->match, 'event' => Config::event()]);
+            \App\Models\PitList::create(['signed' => $this->signed, 'list' => $this->checks, 'match_num' => $this->match, 'event' => $this->event]);
         } else {
             $query->update(['signed' => $this->signed, 'list' => $this->checks]);
         }
@@ -123,7 +129,7 @@ class Form extends Component
 
     public function submit()
     {
-        $query = PitList::query()->where(['match_num' => $this->match, 'event' => Config::event()]);
+        $query = PitList::query()->where(['match_num' => $this->match, 'event' => $this->event]);
         if ($query->count() > 0) {
             $query->update(['signed' => $this->signed]);
         }
@@ -155,7 +161,7 @@ class Form extends Component
         //{"2":{"actual_time":null,"alliances":{"blue":{"dq_team_keys":[],"score":-1,"surrogate_team_keys":[],"team_keys":["frc6078","frc6002","frc7203"]},"red":{"dq_team_keys":[],"score":-1,"surrogate_team_keys":[],"team_keys":["frc4381","frc2767","frc5559"]}},"comp_level":"f","event_key":"2023mila2","key":"2023mila2_f1m3","match_number":3,"post_result_time":null,"predicted_time":1679951456,"score_breakdown":null,"set_number":1,"time":1679950980,"videos":[],"winning_alliance":""}}
         $response = Http::withHeaders([
             'X-TBA-Auth-Key' => 'uSqAJfiJwCciUTUQGRKjcSqdnq2p33fUWBseQePtdjS7bNvtbaPZ0nh7yUPdVbi0',
-        ])->get('https://www.thebluealliance.com/api/v3/team/frc'.Config::team().'/event/'.Config::event().'/matches');
+        ])->get('https://www.thebluealliance.com/api/v3/team/frc'.Config::team().'/event/'.$this->event.'/matches');
         if ($response->ok()) {
 //            $tmp = '{"2":{"actual_time":null,"alliances":{"blue":{"dq_team_keys":[],"score":-1,"surrogate_team_keys":[],"team_keys":["frc6078","frc6002","frc7203"]},"red":{"dq_team_keys":[],"score":-1,"surrogate_team_keys":[],"team_keys":["frc4381","frc2767","frc5559"]}},"comp_level":"f","event_key":"2023mila2","key":"2023mila2_f1m3","match_number":3,"post_result_time":null,"predicted_time":1679951456,"score_breakdown":null,"set_number":1,"time":1679950980,"videos":[],"winning_alliance":""}}';
 
@@ -165,9 +171,14 @@ class Form extends Component
 //            $upcoming = array_filter(json_decode($tmp, true), function ($ele) {
 //                return $ele['actual_time'] === null;
 //            });
-            $upcoming = $upcoming[array_key_first($upcoming)];
+            if(!empty(array_key_first($upcoming))) {
+                $upcoming = $upcoming[array_key_first($upcoming)];
+                $this->match = strtoupper($upcoming['comp_level'][0]).$upcoming['match_number'];
 
-            $this->match = strtoupper($upcoming['comp_level'][0]).$upcoming['match_number'];
+            }
+            else {
+                $this->error = 'No more upcoming matches';
+            }
         }
     }
 }

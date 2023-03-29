@@ -9,7 +9,7 @@
     h2 {
         @apply text-xl;
     }
-    button {
+    button, button[type="button"] {
         @apply p-2;
         @apply bg-gray-500;
         @apply rounded-md;
@@ -23,10 +23,13 @@
         @apply hover:bg-blue-600;
         @apply text-white;
     }
-    input[type="text"] {
+    input[type="text"], input[type="number"] {
         @apply p-2;
         @apply bg-gray-100;
         @apply rounded-md;
+    }
+    span.error {
+        @apply text-red-600;
     }
     label {
         @apply p-2
