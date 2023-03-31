@@ -4,27 +4,35 @@
         <h2>Match: {{ $match }}</h2>
         @if(!$error)
             @foreach($checks as $check)
-
                 @if($check["type"] === 'boolean')
-                    <label>
+                    <label class="relative cursor-pointer block">
                         {{ $check["name"] }}:
                         <input type="checkbox"
                                @disabled($hasSubmitted) @checked($check["value"]) wire:model="checks.{{ $loop->index }}.value"
-                               wire:click="submitForm()">
+                               wire:click="submitForm()"
+                        class="peer sr-only" />
+
+                        <span
+                            class="relative float-right h-8 w-14 inset-0 rounded-full bg-gray-300 transition peer-checked:bg-green-500"
+                        ></span>
+
+                        <span
+                            class="relative float-right inset-0 m-1 h-6 w-6 rounded-full bg-white transition translate-x-8 peer-checked:translate-x-14"
+                        ></span>
                     </label>
+                    <hr style="margin: 6px;">
                 @elseif($check["type"] === 'string')
                     <label>
                         {{ $check["name"] }}:
                         <input type="text" @disabled($hasSubmitted) wire:model.lazy="checks.{{ $loop->index }}.value"
                                wire:keydown="submitForm()">
                     </label>
+                    <hr style="margin: 6px;">
                 @elseif($check['type'] === 'header')
                     <h1>{{ $check['name'] }}</h1>
                 @elseif($check['type'] === 'header2')
                     <h2>{{ $check['name'] }}</h2>
                 @endif
-
-                <br>
             @endforeach
             @if($hasSubmitted)
                 <label>Signed: <input type="text" value="{{$signed}}" disabled></label>
